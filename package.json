@@ -4,7 +4,8 @@
   "scripts": {
     "res:build": "rescript",
     "res:clean": "rescript clean",
-    "res:dev": "rescript -w"
+    "res:dev": "rescript -w",
+    "res:format": "rescript format src/*.{res,resi}"
   },
   "keywords": [
     "rescript"
@@ -13,7 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "@rescript/core": "^1.6.1",
-    "rescript": "^11.1.4",
-    "rescript-nodejs": "^16.1.0"
+    "@rescript/tools": "^0.6.6",
+    "rescript": "^11.1.4"
   }
 }
