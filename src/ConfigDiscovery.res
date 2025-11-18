@@ -1,7 +1,7 @@
 let process = NodeJs.Process.process
 
 let rec findConfig = (
-  ~filename: string,
+  ~filename="derive-builder.config.json",
   ~startDir=NodeJs.Process.cwd(process),
   ~maxDepth=10,
 ): result<string, string> => {

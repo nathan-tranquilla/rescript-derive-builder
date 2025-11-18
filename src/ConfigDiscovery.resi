@@ -1,1 +1,5 @@
-let findConfig: (~filename: string, ~startDir: string=?, ~maxDepth: int=?) => result<string, string>
+let findConfig: (
+  ~filename: string=?,
+  ~startDir: string=?,
+  ~maxDepth: int=?,
+) => result<string, string>
