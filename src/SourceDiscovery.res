@@ -13,15 +13,6 @@ type globOptions = {
 // Constants
 let configErrorMsg = "must be a JSON object with the following keys: 'include', 'exclude', and 'output'"
 
-// Helper functions
-let extractGlobPatterns = (jsonArray: array<JSON.t>): array<string> =>
-  jsonArray->Array.filterMap(glob =>
-    switch glob {
-    | JSON.String(pattern) => Some(pattern)
-    | _ => None
-    }
-  )
-
 let expandGlobs = (patterns: array<string>, ~cwd: string): array<string> =>
   patterns->Array.flatMap(pattern => globSync(pattern, ~options={cwd: cwd, absolute: true}))
 
