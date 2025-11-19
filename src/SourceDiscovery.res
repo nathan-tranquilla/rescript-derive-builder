@@ -25,21 +25,34 @@ let extractGlobPatterns = (jsonArray: array<JSON.t>): array<string> =>
 let expandGlobs = (patterns: array<string>, ~cwd: string): array<string> =>
   patterns->Array.flatMap(pattern => globSync(pattern, ~options={cwd: cwd, absolute: true}))
 
+// GraphQL-style field extractors
+let getObjectField = (obj: Js.Dict.t<JSON.t>, field: string): option<JSON.t> =>
+  obj->Dict.get(field)
+
+let getStringArray = (json: JSON.t): option<array<string>> =>
+  json
+  ->Js.Json.decodeArray
+  ->Option.map(arr =>
+    arr->Array.filterMap(item =>
+      item->Js.Json.decodeString
+    )
+  )
+
 let parseConfigContent = (content: string, path: string): result<array<string>, string> => {
   let configDir = NodeJs.Path.dirname(path)
+  
   try {
-    switch JSON.parseExn(content) {
-    | Object(dict) =>
-      switch dict->Dict.get("include") {
-      | None => Error(`${path} ${configErrorMsg}`)
-      | Some(includes) =>
-        switch includes {
-        | JSON.Array(globs) => Ok(globs->extractGlobPatterns->expandGlobs(~cwd=configDir))
-        | _ => Error(`'includes' must be an array of globs`)
-        }
-      }
-    | _ => Error(`${path} ${configErrorMsg}`)
-    }
+    content
+    ->JSON.parseExn
+    ->Js.Json.decodeObject
+    ->Option.flatMap(obj =>
+      obj
+      ->getObjectField("include")
+      ->Option.flatMap(getStringArray)
+      ->Option.map(patterns => patterns->expandGlobs(~cwd=configDir))
+    )
+    ->Option.map(files => Ok(files))
+    ->Option.getOr(Error(`${path} ${configErrorMsg}`))
   } catch {
   | Exn.Error(_) => Error(`error parsing ${path}`)
   }
