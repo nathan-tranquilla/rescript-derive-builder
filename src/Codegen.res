@@ -29,7 +29,7 @@ let checkItemForBuilder = (item: Js.Dict.t<JSON.t>): bool =>
   ->Option.map(hasBuilderDerivation)
   ->Option.getOr(false)
 
-let filterBuilders = (~filename: string, ~content: string): option<string> => {
+let filterBuilders = (~filename: string, ~content: string): option<(string, string)> => {
   try {
     content
     ->JSON.parseExn
@@ -40,7 +40,7 @@ let filterBuilders = (~filename: string, ~content: string): option<string> => {
       ->Option.flatMap(getObjectArray)
       ->Option.map(items =>
         items->Array.some(checkItemForBuilder)
-          ? Some(filename)
+          ? Some((filename,content))
           : None
       )
       ->Option.getOr(None)
@@ -50,17 +50,41 @@ let filterBuilders = (~filename: string, ~content: string): option<string> => {
   }
 }
 
+let getName = (json: JSON.t): result<string, string> => {
+  json->JSON.Decode.object
+    ->Option.flatMap(dict => dict->Dict.get("name"))
+    ->Option.flatMap(JSON.Decode.string)
+    ->Option.mapOr(Error("No 'name' found"), name => Ok(name))
+}
+
+let generateBuilderSrc = (~content: string): result<string, string> => {
+try {
+    let json = content->JSON.parseExn
+    let nameResult = getName(json)
+    switch (nameResult) {
+    | (Ok(name)) => {
+      Ok(`${name}Builder`)
+    }
+    | (_) => Error("Unable to generate source code")
+    }
+  } catch {
+  | Exn.Error(_) => Error("Unable to parse json")
+  }
+}
+
 let process = NodeJs.Process.process
 switch SourceDiscovery.getSourceFiles(~process) {
 | Ok(sourceFiles) => {
-    Js.Console.log(sourceFiles)
-    let sourceFilesWithBuilder = sourceFiles->Array.filterMap(sourceFile => {
+    sourceFiles->Array.filterMap(sourceFile => {
       let output = ChildProcess.execSync(`npx rescript-tools doc ${sourceFile}`)
         ->NodeJs.Buffer.toStringWithEncoding(NodeJs.StringEncoding.utf8)
-      // Js.Console.log(output)
       filterBuilders(~filename=sourceFile, ~content=output)
-    }) 
-    Js.Console.log(sourceFilesWithBuilder)
+    })->Array.forEach(((_, content)) => {
+      let src = generateBuilderSrc(~content)
+      Js.Console.log(src)
+    })
+  
+    
     NodeJs.Process.exit(process, ())
   }
 | Error(msg) => {
