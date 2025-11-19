@@ -1,23 +1,17 @@
-
 open NodeJs
 
 // GraphQL-style field extractors
-let getObjectField = (obj: Js.Dict.t<JSON.t>, field: string): option<JSON.t> =>
-  obj->Dict.get(field)
+let getObjectField = (obj: Js.Dict.t<JSON.t>, field: string): option<JSON.t> => obj->Dict.get(field)
 
 let getStringArray = (json: JSON.t): option<array<string>> =>
   json
   ->JSON.Decode.array
-  ->Option.map(arr =>
-    arr->Array.filterMap(JSON.Decode.string)
-  )
+  ->Option.map(arr => arr->Array.filterMap(JSON.Decode.string))
 
 let getObjectArray = (json: JSON.t): option<array<Js.Dict.t<JSON.t>>> =>
   json
   ->JSON.Decode.array
-  ->Option.map(arr =>
-    arr->Array.filterMap(JSON.Decode.object)
-  )
+  ->Option.map(arr => arr->Array.filterMap(JSON.Decode.object))
 
 let hasBuilderDerivation = (docstrings: array<string>): bool =>
   docstrings->Array.some(docstring => docstring->String.equal("@@deriving(builder)"))
@@ -39,9 +33,7 @@ let filterBuilders = (~filename: string, ~content: string): option<(string, stri
       ->getObjectField("items")
       ->Option.flatMap(getObjectArray)
       ->Option.map(items =>
-        items->Array.some(checkItemForBuilder)
-          ? Some((filename,content))
-          : None
+        items->Array.some(checkItemForBuilder) ? Some((filename, content)) : None
       )
       ->Option.getOr(None)
     )
@@ -51,21 +43,20 @@ let filterBuilders = (~filename: string, ~content: string): option<(string, stri
 }
 
 let getName = (json: JSON.t): result<string, string> => {
-  json->JSON.Decode.object
-    ->Option.flatMap(dict => dict->Dict.get("name"))
-    ->Option.flatMap(JSON.Decode.string)
-    ->Option.mapOr(Error("No 'name' found"), name => Ok(name))
+  json
+  ->JSON.Decode.object
+  ->Option.flatMap(dict => dict->Dict.get("name"))
+  ->Option.flatMap(JSON.Decode.string)
+  ->Option.mapOr(Error("No 'name' found"), name => Ok(name))
 }
 
 let generateBuilderSrc = (~content: string): result<string, string> => {
-try {
+  try {
     let json = content->JSON.parseExn
     let nameResult = getName(json)
-    switch (nameResult) {
-    | (Ok(name)) => {
-      Ok(`${name}Builder`)
-    }
-    | (_) => Error("Unable to generate source code")
+    switch nameResult {
+    | Ok(name) => Ok(`${name}Builder`)
+    | _ => Error("Unable to generate source code")
     }
   } catch {
   | Exn.Error(_) => Error("Unable to parse json")
@@ -75,16 +66,19 @@ try {
 let process = NodeJs.Process.process
 switch SourceDiscovery.getSourceFiles(~process) {
 | Ok(sourceFiles) => {
-    sourceFiles->Array.filterMap(sourceFile => {
-      let output = ChildProcess.execSync(`npx rescript-tools doc ${sourceFile}`)
-        ->NodeJs.Buffer.toStringWithEncoding(NodeJs.StringEncoding.utf8)
+    sourceFiles
+    ->Array.filterMap(sourceFile => {
+      let output =
+        ChildProcess.execSync(
+          `npx rescript-tools doc ${sourceFile}`,
+        )->NodeJs.Buffer.toStringWithEncoding(NodeJs.StringEncoding.utf8)
       filterBuilders(~filename=sourceFile, ~content=output)
-    })->Array.forEach(((_, content)) => {
+    })
+    ->Array.forEach(((_, content)) => {
       let src = generateBuilderSrc(~content)
       Js.Console.log(src)
     })
-  
-    
+
     NodeJs.Process.exit(process, ())
   }
 | Error(msg) => {

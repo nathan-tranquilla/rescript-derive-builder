@@ -23,7 +23,7 @@ let extractGlobPatterns = (jsonArray: array<JSON.t>): array<string> =>
   )
 
 let expandGlobs = (patterns: array<string>, ~cwd: string): array<string> =>
-  patterns->Array.flatMap(pattern => globSync(pattern, ~options={cwd: cwd, absolute: true}))
+  patterns->Array.flatMap(pattern => globSync(pattern, ~options={cwd, absolute: true}))
 
 let parseConfigContent = (content: string, path: string): result<array<string>, string> => {
   let configDir = NodeJs.Path.dirname(path)
@@ -48,7 +48,8 @@ let parseConfigContent = (content: string, path: string): result<array<string>, 
 let getSourceFiles = (~process: NodeJs.Process.t): result<array<string>, string> => {
   switch ConfigDiscovery.findConfig(~startDir=NodeJs.Process.cwd(process)) {
   | Ok(path) => {
-      let content = NodeJs.Fs.readFileSync(path)->NodeJs.Buffer.toStringWithEncoding(NodeJs.StringEncoding.utf8)
+      let content =
+        NodeJs.Fs.readFileSync(path)->NodeJs.Buffer.toStringWithEncoding(NodeJs.StringEncoding.utf8)
       parseConfigContent(content, path)
     }
   | Error(msg) => Error(msg)
