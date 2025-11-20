@@ -72,16 +72,49 @@ let getFileName = (json: JSON.t): result<string, string> => {
   ->Option.mapOr(Error("No 'name' found"), name => Ok(name))
 }
 
-let isADotTType = (json: JSON.t): bool => {
+let getItemsOpt = (json: JSON.t): option<array<JSON.t>> => {
   json
   ->JSON.Decode.object
   ->Option.flatMap(dict => dict->Dict.get("items"))
   ->Option.flatMap(JSON.Decode.array)
+}
+
+let isADotTType = (json: JSON.t): bool => {
+  json
+  ->getItemsOpt
   ->Option.flatMap(arr => arr->Array.get(0))
   ->Option.flatMap(JSON.Decode.object)
   ->Option.flatMap(dict => dict->Dict.get("name"))
   ->Option.flatMap(JSON.Decode.string)
   ->Option.map(name => name->String.equal("t"))
   ->Option.getOr(false)
+}
+
+let getFieldDeclarations = (json: JSON.t): array<(string, string)> => {
+  json
+  ->getItemsOpt
+  ->Option.map(arrJson => arrJson->Array.flatMap(json' => {
+    json'
+      ->JSON.Decode.object
+      ->Option.flatMap(dict => dict->Dict.get("detail"))
+      ->Option.flatMap(JSON.Decode.object)
+      ->Option.flatMap(dict => dict->Dict.get("items"))
+      ->Option.flatMap(JSON.Decode.array)
+      ->Option.map(fieldsArray => fieldsArray->Array.filterMap(fieldJson => {
+        fieldJson
+        ->JSON.Decode.object
+        ->Option.flatMap(fieldDict => {
+          let name = fieldDict->Dict.get("name")->Option.flatMap(JSON.Decode.string)
+          let signature = fieldDict->Dict.get("signature")->Option.flatMap(JSON.Decode.string)
+          
+          switch (name, signature) {
+          | (Some(n), Some(s)) => Some((n, s))
+          | _ => None
+          }
+        })
+      }))
+      ->Option.getOr([])
+  }))
+  ->Option.getOr([])
 }
 

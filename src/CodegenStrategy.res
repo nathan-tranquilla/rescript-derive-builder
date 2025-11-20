@@ -4,7 +4,6 @@ type handle = JSON.t => string
 type strategy = {
   canHandle: canHandle,
   handle: handle,
-  name: string, 
 }
 
 type rec handler = {
@@ -23,11 +22,27 @@ let rec execute = (json: JSON.t, handler: handler): result<string, string> => {
   }
 }
 
+module DotTHandler = {
+  let handle = (json: JSON.t) => {
+    let nameRes = BuilderMetadata.getFileName(json)
+    let fieldDeclarations = BuilderMetadata.getFieldDeclarations(json)
+    switch (nameRes) {
+    | (Ok(name)) => ` 
+        module ${name}Builder {
+          type t = {
+            ${fieldDeclarations->Array.map(((name, signature)) => `${name}: option<${signature}>`)->Array.join(",\n")}
+          }
+        }
+      `
+    | (_) => ""
+    }
+  }
+}
+
 module CodegenStrategyCoordinator = {
   
   let generalStrategyHandler = {
     strategy: {
-      name: "GeneralStrategy",
       handle: (json) => "code generated from general strategy",
       canHandle: (json) => true
     },
@@ -36,8 +51,7 @@ module CodegenStrategyCoordinator = {
 
   let dotTStrategyHandler = {
     strategy: {
-      name: "DotTStrategy",
-      handle: (json) => "Code generated from dot t strategy",
+      handle: DotTHandler.handle,
       canHandle: (json) => BuilderMetadata.isADotTType(json)
     },
     next: Some(generalStrategyHandler)
@@ -47,6 +61,7 @@ module CodegenStrategyCoordinator = {
     execute(json, dotTStrategyHandler)
   } 
 }
+
 
 
 
