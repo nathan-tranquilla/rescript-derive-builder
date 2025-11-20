@@ -42,8 +42,6 @@
   }]
 }
  */
-
-
 let getStringArray = (json: JSON.t): option<array<string>> =>
   json
   ->JSON.Decode.array
@@ -93,28 +91,37 @@ let isADotTType = (json: JSON.t): bool => {
 let getFieldDeclarations = (json: JSON.t): array<(string, string)> => {
   json
   ->getItemsOpt
-  ->Option.map(arrJson => arrJson->Array.flatMap(json' => {
-    json'
+  ->Option.map(arrJson =>
+    arrJson->Array.flatMap(json' => {
+      json'
       ->JSON.Decode.object
       ->Option.flatMap(dict => dict->Dict.get("detail"))
       ->Option.flatMap(JSON.Decode.object)
       ->Option.flatMap(dict => dict->Dict.get("items"))
       ->Option.flatMap(JSON.Decode.array)
-      ->Option.map(fieldsArray => fieldsArray->Array.filterMap(fieldJson => {
-        fieldJson
-        ->JSON.Decode.object
-        ->Option.flatMap(fieldDict => {
-          let name = fieldDict->Dict.get("name")->Option.flatMap(JSON.Decode.string)
-          let signature = fieldDict->Dict.get("signature")->Option.flatMap(JSON.Decode.string)
-          
-          switch (name, signature) {
-          | (Some(n), Some(s)) => Some((n, s))
-          | _ => None
-          }
-        })
-      }))
+      ->Option.map(
+        fieldsArray =>
+          fieldsArray->Array.filterMap(
+            fieldJson => {
+              fieldJson
+              ->JSON.Decode.object
+              ->Option.flatMap(
+                fieldDict => {
+                  let name = fieldDict->Dict.get("name")->Option.flatMap(JSON.Decode.string)
+                  let signature =
+                    fieldDict->Dict.get("signature")->Option.flatMap(JSON.Decode.string)
+
+                  switch (name, signature) {
+                  | (Some(n), Some(s)) => Some((n, s))
+                  | _ => None
+                  }
+                },
+              )
+            },
+          ),
+      )
       ->Option.getOr([])
-  }))
+    })
+  )
   ->Option.getOr([])
 }
-

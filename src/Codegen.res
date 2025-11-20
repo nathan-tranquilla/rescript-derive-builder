@@ -20,8 +20,9 @@ let filterBuilders = (~filename: string, ~content: string): option<(string, stri
 }
 
 let process = NodeJs.Process.process
-switch SourceDiscovery.getSourceFiles(~process) {
-| Ok(sourceFiles) => {
+switch ConfigDiscovery.getConfigContent(~process) {
+| Ok(cfgFile) => {
+    let sourceFiles = cfgFile.paths
     sourceFiles
     ->Array.filterMap(sourceFile => {
       let output =
@@ -30,16 +31,31 @@ switch SourceDiscovery.getSourceFiles(~process) {
         )->NodeJs.Buffer.toStringWithEncoding(NodeJs.StringEncoding.utf8)
       filterBuilders(~filename=sourceFile, ~content=output)
     })
-    ->Array.forEach(((_, content)) => {
+    ->Array.forEach(((filename, content)) => {
       try {
         open CodegenStrategy
-        let code = CodegenStrategyCoordinator.exec(JSON.parseExn(content))
-        ->Result.getExn
-        Js.Console.log(code);
+        let jsonDoc = JSON.parseExn(content)
+        let code = CodegenStrategyCoordinator.exec(jsonDoc)->Result.getExn
+        let outputFilename = Path.join2(cfgFile.output, Path.parse(filename).name ++ "Builder.res")
+        Fs.mkdirSyncWith(cfgFile.output, {recursive: true})
+        Fs.writeFileSync(outputFilename, code->Buffer.fromString)
       } catch {
-        | Exn.Error(_) => Js.Console.log("unable to produce code")
+      | Js.Exn.Error(obj) =>
+        switch Js.Exn.message(obj) {
+        | Some(msg) if String.includes(msg, "JSON") => Js.Console.log(`JSON parsing error: ${msg}`)
+        | Some(msg) if String.includes(msg, "ENOENT") => Js.Console.log(`File not found: ${msg}`)
+        | Some(msg) if String.includes(msg, "EACCES") => Js.Console.log(`Permission denied: ${msg}`)
+        | Some(msg) if String.includes(msg, "EEXIST") =>
+          Js.Console.log(`File already exists: ${msg}`)
+        | Some(msg) => Js.Console.log(`Error: ${msg}`)
+        | None => Js.Console.log("Unknown error occurred during code generation")
+        }
+      | Exn.Error(obj) =>
+        switch Exn.message(obj) {
+        | Some(msg) => Js.Console.log(`System error: ${msg}`)
+        | None => Js.Console.log("Unable to produce code - unknown system error")
+        }
       }
-      
     })
 
     NodeJs.Process.exit(process, ())

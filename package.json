@@ -5,7 +5,7 @@
     "res:build": "rescript",
     "res:clean": "rescript clean",
     "res:dev": "rescript -w",
-    "res:format": "rescript format src/*.{res,resi}"
+    "res:format": "rescript format src/{*.{res,resi},**/*.res}"
   },
   "keywords": [
     "rescript"

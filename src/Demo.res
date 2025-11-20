@@ -4,5 +4,5 @@
 type t = {
   name: string,
   age: int,
-  socialSecurity?: int,
+  socialSecurity: int,
 }
