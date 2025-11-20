@@ -28,18 +28,12 @@ let expandGlobs = (patterns: array<string>, ~cwd: string): array<string> =>
 let parseConfigContent = (content: string, path: string): result<array<string>, string> => {
   let configDir = NodeJs.Path.dirname(path)
   try {
-    switch JSON.parseExn(content) {
-    | Object(dict) =>
-      switch dict->Dict.get("include") {
-      | None => Error(`${path} ${configErrorMsg}`)
-      | Some(includes) =>
-        switch includes {
-        | JSON.Array(globs) => Ok(globs->extractGlobPatterns->expandGlobs(~cwd=configDir))
-        | _ => Error(`'includes' must be an array of globs`)
-        }
-      }
-    | _ => Error(`${path} ${configErrorMsg}`)
-    }
+    JSON.parseExn(content)
+    ->JSON.Decode.object
+    ->Option.flatMap(dict => dict->Dict.get("include"))
+    ->Option.flatMap(json => json->JSON.Decode.array)
+    ->Option.map(globs => globs->extractGlobPatterns->expandGlobs(~cwd=configDir))
+    ->Option.mapOr(Error(`${path} ${configErrorMsg}`), paths => Ok(paths))
   } catch {
   | Exn.Error(_) => Error(`error parsing ${path}`)
   }
