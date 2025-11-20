@@ -28,9 +28,26 @@ module DotTHandler = {
     let fieldDeclarations = BuilderMetadata.getFieldDeclarations(json)
     switch (nameRes) {
     | (Ok(name)) => ` 
-        module ${name}Builder {
+        module ${name->String.charAt(0)->String.toUpperCase ++ name->String.sliceToEnd(~start=1)}Builder {
           type t = {
-            ${fieldDeclarations->Array.map(((name, signature)) => `${name}: option<${signature}>`)->Array.join(",\n")}
+            ${fieldDeclarations->Array.map(((name, signature)) => `${name}: option<${signature}>`)->Array.join(",\n            ")}
+          }
+          
+          let empty = () => {
+            ${fieldDeclarations->Array.map(((name, _)) => `${name}: None`)->Array.join(",\n            ")}
+          }
+
+          ${fieldDeclarations->Array.map(((name, signature)) => `
+          let ${name} = (builder: t, val: ${signature}): t => {
+            {...builder, ${name}: Some(val)}
+          }`)->Array.join("\n\n          ")}
+          
+          let build = (builder: t): result<${name}.t, string> => {
+            switch (${fieldDeclarations->Array.map(((name, _)) => `builder.${name}`)->Array.join(", ")}) {
+            | (${fieldDeclarations->Array.map(((name, _)) => `Some(${name})`)->Array.join(", ")}) => 
+                Ok({${fieldDeclarations->Array.map(((name, _)) => `${name}: ${name}`)->Array.join(", ")}})
+            | _ => Error("Missing required fields")
+            }
           }
         }
       `
@@ -43,8 +60,8 @@ module CodegenStrategyCoordinator = {
   
   let generalStrategyHandler = {
     strategy: {
-      handle: (json) => "code generated from general strategy",
-      canHandle: (json) => true
+      handle: (_json) => "//TODO: Implement general code generation strategy",
+      canHandle: (_json) => true
     },
     next: None
   }
