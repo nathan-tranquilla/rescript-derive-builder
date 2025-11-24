@@ -1,6 +1,6 @@
 let findConfig: (
   ~filename: string=?,
-  ~startDir: string=?,
+  ~startDir: string,
   ~maxDepth: int=?,
 ) => result<string, string>
 

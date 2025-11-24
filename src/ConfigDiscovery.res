@@ -1,18 +1,40 @@
-let process = NodeJs.Process.process
+let fileContains = (filePath: string, searchString: string): bool => {
+  try {
+    open NodeJs
+    let content = Fs.readFileSync(filePath)
+    content->Buffer.toString->String.includes(searchString)
+  } catch {
+  | Exn.Error(_) => false
+  }
+}
+
+module ConfigKeys = {
+  let root = "derive-builder"
+  let include_ = "include"  // include is a reserved keyword
+  let output = "output"
+}
 
 let rec findConfig = (
-  ~filename="derive-builder.config.json",
-  ~startDir=NodeJs.Process.cwd(process),
+  ~filename="rescript.json",
+  ~startDir:string,
   ~maxDepth=10,
 ): result<string, string> => {
   open NodeJs
   let path = Path.join2(startDir, filename)
-  if Fs.existsSync(path) {
+  if Fs.existsSync(path) && fileContains(path, ConfigKeys.root) {
     Ok(path)
   } else if maxDepth - 1 > 0 {
     findConfig(~filename, ~startDir=Path.dirname(startDir), ~maxDepth=maxDepth - 1)
   } else {
-    Error(`Could not find file ${filename}`)
+    Error(`Could not find ${filename} with "${ConfigKeys.root}" configuration in ${startDir} or any parent directory (searched ${Int.toString(maxDepth)} levels up). 
+
+Add this to your ${filename}:
+{
+  "derive-builder": {
+    "include": ["src/**/*.res"],
+    "output": "src/generated"
+  }
+}`)
   }
 }
 
@@ -52,17 +74,23 @@ type configFile = {
 let parseConfigContent = (content: string, path: string): result<configFile, string> => {
   let configDir = NodeJs.Path.dirname(path)
   try {
-    let jsonDict = JSON.parseExn(content)->JSON.Decode.object
+
+    Console.log("here first")
+    let configObj = JSON.parseExn(content)->JSON.Decode.object
+      ->Option.flatMap(dict => dict->Dict.get(ConfigKeys.root))
+      ->Option.flatMap(json => json->JSON.Decode.object)
+
+    Console.log("here")
 
     let pathsOpt =
-      jsonDict
-      ->Option.flatMap(dict => dict->Dict.get("include"))
+      configObj
+      ->Option.flatMap(dict => dict->Dict.get(ConfigKeys.include_))
       ->Option.flatMap(json => json->JSON.Decode.array)
       ->Option.map(globs => globs->extractGlobPatterns->expandGlobs(~cwd=configDir))
 
     let outputOpt =
-      jsonDict
-      ->Option.flatMap(dict => dict->Dict.get("output"))
+      configObj
+      ->Option.flatMap(dict => dict->Dict.get(ConfigKeys.output))
       ->Option.flatMap(json => json->JSON.Decode.string)
       ->Option.map(output => expandToAbsolute(configDir, output))
 
@@ -75,7 +103,7 @@ let parseConfigContent = (content: string, path: string): result<configFile, str
     | _ => Error(`error parsing contents of ${path}`)
     }
   } catch {
-  | Exn.Error(_) => Error(`error parsing ${path}`)
+  | Exn.Error(_) => Error(`Expected ${path} to contain json`)
   }
 }
 
