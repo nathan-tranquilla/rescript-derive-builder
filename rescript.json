@@ -6,7 +6,8 @@
   },
   "package-specs": {
     "module": "esmodule",
-    "in-source": true
+    "in-source": false,
+    "suffix": ".res.mjs"
   },
   "suffix": ".res.mjs",
   "bs-dependencies": [

@@ -20,7 +20,7 @@ let getObjectArray = (json: JSON.t): option<array<Js.Dict.t<JSON.t>>> =>
   ->Option.map(arr => arr->Array.filterMap(JSON.Decode.object))
 
 let hasBuilderDerivation = (docstrings: array<string>): bool =>
-  docstrings->Array.some(docstring => docstring->String.equal(builderAttribute))
+  docstrings->Array.some(docstring => docstring->String.includes(builderAttribute))
 
 let checkItemForBuilder = (item: Js.Dict.t<JSON.t>): bool =>
   item

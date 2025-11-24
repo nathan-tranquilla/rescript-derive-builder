@@ -75,12 +75,9 @@ let parseConfigContent = (content: string, path: string): result<configFile, str
   let configDir = NodeJs.Path.dirname(path)
   try {
 
-    Console.log("here first")
     let configObj = JSON.parseExn(content)->JSON.Decode.object
       ->Option.flatMap(dict => dict->Dict.get(ConfigKeys.root))
       ->Option.flatMap(json => json->JSON.Decode.object)
-
-    Console.log("here")
 
     let pathsOpt =
       configObj

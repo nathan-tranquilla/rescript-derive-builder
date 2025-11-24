@@ -7,6 +7,13 @@
     "res:dev": "rescript -w",
     "res:format": "rescript format src/{*.{res,resi},**/*.res}"
   },
+  "bin": "./bin/cli.js",
+  "main": "lib/es6/src/Codegen.res.mjs",
+  "files": [
+    "bin/",
+    "lib/es6/src",
+    "README.md"
+  ],
   "keywords": [
     "rescript"
   ],
