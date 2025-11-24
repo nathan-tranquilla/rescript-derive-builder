@@ -23,10 +23,10 @@ let rec findConfig = (
   let path = Path.join2(startDir, filename)
   if Fs.existsSync(path) && fileContains(path, ConfigKeys.root) {
     Ok(path)
-  } else if maxDepth - 1 > 0 {
+  } else if maxDepth - 1 >= 0 {
     findConfig(~filename, ~startDir=Path.dirname(startDir), ~maxDepth=maxDepth - 1)
   } else {
-    Error(`Could not find ${filename} with "${ConfigKeys.root}" configuration in ${startDir} or any parent directory (searched ${Int.toString(maxDepth)} levels up). 
+    Error(`Could not find ${filename} with "${ConfigKeys.root}" configuration in ${startDir} or any parent directory (searched ${Int.toString(10-maxDepth)} levels up). 
 
 Add this to your ${filename}:
 {
