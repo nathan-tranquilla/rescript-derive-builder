@@ -10,15 +10,14 @@ let fileContains = (filePath: string, searchString: string): bool => {
 
 module ConfigKeys = {
   let root = "derive-builder"
-  let include_ = "include"  // include is a reserved keyword
+  let include_ = "include" // include is a reserved keyword
   let output = "output"
 }
 
-let rec findConfig = (
-  ~filename="rescript.json",
-  ~startDir:string,
-  ~maxDepth=10,
-): result<string, string> => {
+let rec findConfig = (~filename="rescript.json", ~startDir: string, ~maxDepth=10): result<
+  string,
+  string,
+> => {
   open NodeJs
   let path = Path.join2(startDir, filename)
   if Fs.existsSync(path) && fileContains(path, ConfigKeys.root) {
@@ -26,7 +25,10 @@ let rec findConfig = (
   } else if maxDepth - 1 >= 0 {
     findConfig(~filename, ~startDir=Path.dirname(startDir), ~maxDepth=maxDepth - 1)
   } else {
-    Error(`Could not find ${filename} with "${ConfigKeys.root}" configuration in ${startDir} or any parent directory (searched ${Int.toString(10-maxDepth)} levels up). 
+    Error(
+      `Could not find ${filename} with "${ConfigKeys.root}" configuration in ${startDir} or any parent directory (searched ${Int.toString(
+          10 - maxDepth,
+        )} levels up). 
 
 Add this to your ${filename}:
 {
@@ -34,7 +36,8 @@ Add this to your ${filename}:
     "include": ["src/**/*.res"],
     "output": "src/generated"
   }
-}`)
+}`,
+    )
   }
 }
 
@@ -74,8 +77,9 @@ type configFile = {
 let parseConfigContent = (content: string, path: string): result<configFile, string> => {
   let configDir = NodeJs.Path.dirname(path)
   try {
-
-    let configObj = JSON.parseExn(content)->JSON.Decode.object
+    let configObj =
+      JSON.parseExn(content)
+      ->JSON.Decode.object
       ->Option.flatMap(dict => dict->Dict.get(ConfigKeys.root))
       ->Option.flatMap(json => json->JSON.Decode.object)
 
@@ -97,18 +101,29 @@ let parseConfigContent = (content: string, path: string): result<configFile, str
         paths,
         output,
       })
-    | (None, Some(_)) => Error(`Missing or invalid "include" field in ${path}. Expected an array of glob patterns like: ["src/**/*.res"]`)
-    | (Some(_), None) => Error(`Missing or invalid "output" field in ${path}. Expected a string path like: "src/generated"`)
-    | (None, None) => Error(`Invalid configuration in ${path}. Missing both "include" and "output" fields. Expected:
+    | (None, Some(_)) =>
+      Error(
+        `Missing or invalid "include" field in ${path}. Expected an array of glob patterns like: ["src/**/*.res"]`,
+      )
+    | (Some(_), None) =>
+      Error(
+        `Missing or invalid "output" field in ${path}. Expected a string path like: "src/generated"`,
+      )
+    | (None, None) =>
+      Error(
+        `Invalid configuration in ${path}. Missing both "include" and "output" fields. Expected:
 {
   "derive-builder": {
     "include": ["src/**/*.res"],
     "output": "src/generated"
   }
-}`)
+}`,
+      )
     }
   } catch {
-  | Exn.Error(_) => Error(`Invalid JSON syntax in ${path}. Please check that your configuration file contains valid JSON.
+  | Exn.Error(_) =>
+    Error(
+      `Invalid JSON syntax in ${path}. Please check that your configuration file contains valid JSON.
 
 Expected format:
 {
@@ -116,7 +131,8 @@ Expected format:
     "include": ["src/**/*.res"],
     "output": "src/generated"
   }
-}`)
+}`,
+    )
   }
 }
 

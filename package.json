@@ -5,7 +5,7 @@
     "res:build": "rescript",
     "res:clean": "rescript clean",
     "res:dev": "rescript -w",
-    "res:format": "rescript format src/{*.{res,resi},**/*.res}",
+    "res:format": "rescript format src/*.{res,resi}",
     "res:test": "rescript && retest 'lib/es6/tests/**/*_test.res.mjs'"
   },
   "bin": "./bin/cli.js",

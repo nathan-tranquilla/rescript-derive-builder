@@ -1,8 +1,4 @@
-let findConfig: (
-  ~filename: string=?,
-  ~startDir: string,
-  ~maxDepth: int=?,
-) => result<string, string>
+let findConfig: (~filename: string=?, ~startDir: string, ~maxDepth: int=?) => result<string, string>
 
 type configFile = {
   @as("include") paths: array<string>,
