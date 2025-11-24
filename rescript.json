@@ -1,9 +1,16 @@
 {
   "name": "app",
-  "sources": {
-    "dir": "src",
-    "subdirs": true
-  },
+  "sources": [
+    {
+      "dir": "src",
+      "subdirs": true
+    },
+    {
+      "dir": "tests",
+      "subdirs": true,
+      "type": "dev"
+    }
+  ],
   "package-specs": {
     "module": "esmodule",
     "in-source": false,
@@ -13,6 +20,9 @@
   "bs-dependencies": [
     "@rescript/core",
     "rescript-nodejs"
+  ],
+  "bs-dev-dependencies": [
+    "rescript-test"
   ],
   "bsc-flags": [
     "-open RescriptCore"
