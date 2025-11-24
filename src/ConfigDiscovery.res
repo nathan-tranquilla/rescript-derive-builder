@@ -100,10 +100,26 @@ let parseConfigContent = (content: string, path: string): result<configFile, str
         paths,
         output,
       })
-    | _ => Error(`error parsing contents of ${path}`)
+    | (None, Some(_)) => Error(`Missing or invalid "include" field in ${path}. Expected an array of glob patterns like: ["src/**/*.res"]`)
+    | (Some(_), None) => Error(`Missing or invalid "output" field in ${path}. Expected a string path like: "src/generated"`)
+    | (None, None) => Error(`Invalid configuration in ${path}. Missing both "include" and "output" fields. Expected:
+{
+  "derive-builder": {
+    "include": ["src/**/*.res"],
+    "output": "src/generated"
+  }
+}`)
     }
   } catch {
-  | Exn.Error(_) => Error(`Expected ${path} to contain json`)
+  | Exn.Error(_) => Error(`Invalid JSON syntax in ${path}. Please check that your configuration file contains valid JSON.
+
+Expected format:
+{
+  "derive-builder": {
+    "include": ["src/**/*.res"],
+    "output": "src/generated"
+  }
+}`)
   }
 }
 
