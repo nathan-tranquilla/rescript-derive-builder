@@ -38,7 +38,7 @@ module DotTHandler = {
         ->Array.join(",\n            ")}
           }
           
-          let empty = () => {
+          let empty = (): t => {
             ${fieldDeclarations
         ->Array.map(((name, _)) => `${name}: None`)
         ->Array.join(",\n            ")}
@@ -55,18 +55,31 @@ module DotTHandler = {
           
           let build = (builder: t): result<${name}.t, string> => {
             switch (${fieldDeclarations
-        ->Array.map(((name, _)) => `builder.${name}`)
+        ->Array.map(((fieldName, _)) => `builder.${fieldName}`)
         ->Array.join(", ")}) {
             | (${fieldDeclarations
-        ->Array.map(((name, _)) => `Some(${name})`)
+        ->Array.map(((fieldName, _)) => `Some(${fieldName})`)
         ->Array.join(", ")}) => 
                 Ok({${fieldDeclarations
-        ->Array.map(((name, _)) => `${name}: ${name}`)
+        ->Array.map(((fieldName, _)) => `${fieldName}: ${fieldName}`)
         ->Array.join(", ")}})
-            | _ => Error("Missing required fields")
+            ${fieldDeclarations
+        ->Array.mapWithIndex(((fieldName, _), index) => {
+          let patternParts = fieldDeclarations->Array.mapWithIndex(((_, _), i) =>
+            if i == index {
+              "None"
+            } else {
+              "_"
+            }
+          )
+          `| (${patternParts->Array.join(", ")}) => Error("Missing required field: ${fieldName}")`
+        })
+        ->Array.join("\n            ")}
+            | _ => Error("Missing multiple required fields")
             }
           }
         }
+        
       `
     | _ => ""
     }
