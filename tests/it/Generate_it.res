@@ -35,7 +35,7 @@ let restoreConfig = (): unit => {
   }
 }
 
-test("Test codegen", () => {
+test("Test that generated source code compiles", () => {
 
   // Overwrites rescript.json at the root of the project
   setupConfig()
