@@ -1,6 +1,7 @@
 {
-  "name": "app",
-  "version": "0.0.0",
+  "name": "rescript-derive-builder",
+  "version": "1.0.0",
+  "description": "Automatic builder pattern generation for ReScript using @@deriving(builder)",
   "scripts": {
     "clean": "rescript clean && node scripts/clean.js",
     "res:build": "rescript",
@@ -9,20 +10,34 @@
     "res:format": "rescript format src/*.{res,resi} tests/**/*.res",
     "res:test": "rescript && retest 'lib/es6/tests/unit/**/*_test.res.mjs'",
     "res:it": "npm run clean && rescript && retest 'lib/es6/tests/it/**/*_it.res.mjs'",
-    "test": "npm run res:test && npm run res:it"
+    "test": "npm run res:test && npm run res:it",
+    "build": "rescript",
+    "prepublishOnly": "npm run clean && npm run build && npm test"
   },
   "bin": "./bin/cli.js",
   "main": "lib/es6/src/Codegen.res.mjs",
   "files": [
     "bin/",
     "lib/es6/src",
-    "README.md"
+    "README.md",
+    "rescript.json"
   ],
   "keywords": [
-    "rescript"
+    "rescript",
+    "builder-pattern",
+    "code-generation",
+    "deriving"
   ],
-  "author": "",
+  "author": "Nathan Tranquilla <n1tranquilla@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nathan-tranquilla/rescript-derive-builder.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nathan-tranquilla/rescript-derive-builder/issues"
+  },
+  "homepage": "https://github.com/nathan-tranquilla/rescript-derive-builder#readme",
   "dependencies": {
     "@rescript/core": "^1.6.1",
     "@rescript/tools": "^0.6.6",
