@@ -2,6 +2,7 @@
   "name": "app",
   "version": "0.0.0",
   "scripts": {
+    "clean": "rescript clean && node scripts/clean.js",
     "res:build": "rescript",
     "res:clean": "rescript clean",
     "res:dev": "rescript -w",
