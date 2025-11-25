@@ -1,58 +1,59 @@
 open Test
 open NodeJs
 
-let setupConfig = (): unit => {
-  try {
-    // Backup original config if it exists
-    if Fs.existsSync("./rescript.json") {
-      Js.Console.log("Backing up existing rescript.json...")
-      Fs.renameSync(~from="./rescript.json", ~to_="./rescript.json.tmp")
-      Js.Console.log("Backup created successfully")
-    } else {
-      Js.Console.log("No existing rescript.json found")
-    }
-    // Copy test config (read + write since copyFileSync isn't available)
-    Js.Console.log("Copying test config...")
-    let content = Fs.readFileSync("./tests/__fixtures__/rescript.json.fix")
-    Fs.writeFileSync("./rescript.json", content)
-    Js.Console.log("Test config setup successfully")
-  } catch {
-  | Exn.Error(err) =>
-    Js.Console.error(`Failed to setup config: ${Exn.message(err)->Option.getOr("Unknown")}`)
-  }
-}
-
-let restoreConfig = (): unit => {
-  try {
-    // Remove the test config file if it exists
-    if Fs.existsSync("./rescript.json") {
-      Fs.unlinkSync("./rescript.json")
-    }
-    // Restore the original config
-    Fs.renameSync(~from="./rescript.json.tmp", ~to_="./rescript.json")
-    Js.Console.log("Config restored successfully")
-  } catch {
-  | Exn.Error(err) =>
-    Js.Console.error(`Failed to restore config: ${Exn.message(err)->Option.getOr("Unknown")}`)
-  }
-}
-
 test("Test that generated source code compiles", () => {
-  // Overwrites rescript.json at the root of the project
-  setupConfig()
-
-  // Rebuilds the project with the builder configuration
-  let _ = ChildProcess.execSync("npm run res:build")
-
-  // Runs code generation
-  let _ = ChildProcess.execSync("node bin/cli.js")
-
-  // Rebuilds the project to generate builder JavaScript code
-  let _ = ChildProcess.execSync("npm run res:build")
-
-  // Restores the config
-  restoreConfig()
-
-  // Rebuilds the project with original rescript.json
-  let _ = ChildProcess.execSync("npm run res:build")
+  // Change to tests directory
+  let process=Process.process
+  let originalCwd = Process.cwd(process)
+  Process.chdir(process, "./tests")
+  
+  try {
+    // Ensure __generated__ directory exists
+    if !Fs.existsSync("__generated__") {
+      Fs.mkdirSync("__generated__")
+    }
+    
+    // First, just build the fixtures (this should work)
+    let _ = ChildProcess.execSync("npx rescript")
+    
+    // Run code generation from tests directory - this creates the builder files
+    let _ = ChildProcess.execSync("node ../bin/cli.js")
+    
+    // Update rescript.json to include __generated__ directory
+    let configContent = Fs.readFileSync("rescript.json")->Buffer.toString
+    let updatedConfig = configContent->String.replace(
+      `"sources": [ 
+    {
+      "dir": "__fixtures__",
+      "subdirs": false
+    }
+  ],`,
+      `"sources": [ 
+    {
+      "dir": "__fixtures__",
+      "subdirs": false
+    },
+    {
+      "dir": "__generated__",
+      "subdirs": false
+    }
+  ],`
+    )
+    Fs.writeFileSync("rescript.json", Buffer.fromString(updatedConfig))
+    
+    // Now rebuild to ensure generated code compiles
+    let _ = ChildProcess.execSync("npx rescript")
+    
+    Js.Console.log("Integration test passed - generated code compiles successfully")
+    
+    // Always restore original directory
+    Process.chdir(process, originalCwd)
+  } catch {
+  | Exn.Error(err) => {
+      // Always restore original directory on error
+      Process.chdir(process,originalCwd)
+      Js.Console.error(`Integration test failed: ${Exn.message(err)->Option.getOr("Unknown")}`)
+      fail()
+    }
+  }
 })

@@ -1,6 +1,7 @@
 .DS_Store
 /node_modules/
 /lib/
+/tests/lib/
 .bsb.lock
 .merlin
 src/**/*.mjs

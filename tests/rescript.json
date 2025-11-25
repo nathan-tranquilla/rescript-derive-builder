@@ -1,0 +1,29 @@
+{
+  "name": "derive-builder-test",
+  "sources": [ 
+    {
+      "dir": "__fixtures__",
+      "subdirs": false
+    },
+    {
+      "dir": "__generated__",
+      "subdirs": false
+    }
+  ],
+  "package-specs": {
+    "module": "esmodule",
+    "in-source": false,
+    "suffix": ".res.mjs"
+  },
+  "suffix": ".res.mjs",
+  "bs-dependencies": [
+    "@rescript/core"
+  ],
+  "bsc-flags": [
+    "-open RescriptCore"
+  ],
+  "derive-builder": {
+    "include": ["__fixtures__/*.res"],
+    "output": "__generated__"
+  }
+}
