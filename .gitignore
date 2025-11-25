@@ -4,4 +4,4 @@
 .bsb.lock
 .merlin
 src/**/*.mjs
-/**/__generated__/
+/**/__generated__/**

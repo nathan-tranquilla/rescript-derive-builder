@@ -1,0 +1,34 @@
+{
+  "name": "test",
+  "sources": [ 
+    {
+      "dir": "src",
+      "subdirs": true
+    },
+    {
+      "dir": "tests",
+      "subdirs": true,
+      "type": "dev"
+    }
+  ],
+  "package-specs": {
+    "module": "esmodule",
+    "in-source": false,
+    "suffix": ".res.mjs"
+  },
+  "suffix": ".res.mjs",
+  "bs-dependencies": [
+    "@rescript/core",
+    "rescript-nodejs"
+  ],
+  "bs-dev-dependencies": [
+    "rescript-test"
+  ],
+  "bsc-flags": [
+    "-open RescriptCore"
+  ],
+  "derive-builder": {
+    "include": ["tests/__fixtures__/*.res"],
+    "output": "tests/__generated__"
+  }
+}

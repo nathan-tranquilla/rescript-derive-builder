@@ -7,7 +7,8 @@
     "res:clean": "rescript clean",
     "res:dev": "rescript -w",
     "res:format": "rescript format src/*.{res,resi} tests/*.res",
-    "res:test": "rescript && retest 'lib/es6/tests/**/*_test.res.mjs'"
+    "res:test": "rescript && retest 'lib/es6/tests/unit/**/*_test.res.mjs'",
+    "res:it": "npm run clean && rescript && retest 'lib/es6/tests/it/**/*_it.res.mjs'"
   },
   "bin": "./bin/cli.js",
   "main": "lib/es6/src/Codegen.res.mjs",
