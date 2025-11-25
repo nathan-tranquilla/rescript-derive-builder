@@ -34,49 +34,80 @@ module DotTHandler = {
         )}Builder = {
           type t = {
             ${fieldDeclarations
-        ->Array.map(((name, signature)) => `${name}: option<${signature}>`)
+        ->Array.map(((name, signature, isOpt)) => {
+          if isOpt {
+            `${name}: ${signature}`
+          } else {
+            `${name}: option<${signature}>`
+          }
+        })
         ->Array.join(",\n            ")}
           }
           
           let empty = (): t => {
             ${fieldDeclarations
-        ->Array.map(((name, _)) => `${name}: None`)
+        ->Array.map(((name, _, _)) => `${name}: None`)
         ->Array.join(",\n            ")}
           }
 
           ${fieldDeclarations
-        ->Array.map(((name, signature)) =>
+        ->Array.map(((name, signature, isOpt)) => {
+          let valueAssignment = if isOpt {
+            "val"
+          } else {
+            "Some(val)"
+          }
           `
           let ${name} = (builder: t, val: ${signature}): t => {
-            {...builder, ${name}: Some(val)}
+            {...builder, ${name}: ${valueAssignment}}
           }`
-        )
+        })
         ->Array.join("\n\n          ")}
           
           let build = (builder: t): result<${name}.t, string> => {
-            switch (${fieldDeclarations
-        ->Array.map(((fieldName, _)) => `builder.${fieldName}`)
-        ->Array.join(", ")}) {
+            ${{
+          let requiredFields = fieldDeclarations->Array.filter(((_, _, isOpt)) => !isOpt)
+
+          if requiredFields->Array.length === 0 {
+            // No required fields, just build the record
+            `Ok({${fieldDeclarations
+              ->Array.map(((fieldName, _, isOpt)) =>
+                if isOpt {
+                  `${fieldName}: builder.${fieldName}`
+                } else {
+                  `${fieldName}: Option.getExn(builder.${fieldName})`
+                }
+              )
+              ->Array.join(", ")}})`
+          } else {
+            // Has required fields - generate pattern match
+            `switch (${fieldDeclarations
+              ->Array.map(((fieldName, _, _)) => `builder.${fieldName}`)
+              ->Array.join(", ")}) {
             | (${fieldDeclarations
-        ->Array.map(((fieldName, _)) => `Some(${fieldName})`)
-        ->Array.join(", ")}) => 
+              ->Array.map(((fieldName, _, _)) => `Some(${fieldName})`)
+              ->Array.join(", ")}) => 
                 Ok({${fieldDeclarations
-        ->Array.map(((fieldName, _)) => `${fieldName}: ${fieldName}`)
-        ->Array.join(", ")}})
-            ${fieldDeclarations
-        ->Array.mapWithIndex(((fieldName, _), index) => {
-          let patternParts = fieldDeclarations->Array.mapWithIndex(((_, _), i) =>
-            if i == index {
-              "None"
-            } else {
-              "_"
-            }
-          )
-          `| (${patternParts->Array.join(", ")}) => Error("Missing required field: ${fieldName}")`
-        })
-        ->Array.join("\n            ")}
+              ->Array.map(((fieldName, _, _)) => `${fieldName}: ${fieldName}`)
+              ->Array.join(", ")}})
+            ${requiredFields
+              ->Array.map(((fieldName, _, _)) => {
+                let patternParts = fieldDeclarations->Array.map(((currentFieldName, _, _)) => {
+                  if fieldName === currentFieldName {
+                    "None"
+                  } else {
+                    "_"
+                  }
+                })
+                `| (${patternParts->Array.join(
+                    ", ",
+                  )}) => Error("Missing required field: ${fieldName}")`
+              })
+              ->Array.join("\n            ")}
             | _ => Error("Missing multiple required fields")
-            }
+            }`
+          }
+        }}
           }
         }
         

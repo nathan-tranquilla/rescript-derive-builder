@@ -30,4 +30,6 @@ type t = {
   // Complex nested types
   nestedResult: result<option<string>, array<string>>,
   complexOptional: option<result<array<int>, string>>,
+  // Optional record Fields
+  optionalRecordField?: int,
 }

@@ -260,7 +260,7 @@ test("getFieldDeclarations", () => {
     ~message="getFieldDeclarations extracts name-signature pairs from valid structure",
     (actual, expected) => actual == expected,
     getFieldDeclarations(validFieldsJson),
-    [("username", "string"), ("age", "int")],
+    [("username", "string", false), ("age", "int", false)],
   )
 
   // Test JSON with incomplete field (missing signature)
@@ -305,7 +305,7 @@ test("getFieldDeclarations", () => {
     ~message="getFieldDeclarations skips incomplete fields and returns valid ones",
     (actual, expected) => actual == expected,
     getFieldDeclarations(incompleteFieldJson),
-    [("age", "int")],
+    [("age", "int", false)],
   )
 
   // Test JSON with no items (leverages getItemsOpt)

@@ -4,6 +4,7 @@ module JsonKeys = {
   let items = "items"
   let detail = "detail"
   let signature = "signature"
+  let optional = "optional"
 }
 
 let builderAttribute = "@@deriving(builder)"
@@ -54,7 +55,7 @@ let isADotTType = (json: JSON.t): bool => {
   ->Option.getOr(false)
 }
 
-let getFieldDeclarations = (json: JSON.t): array<(string, string)> => {
+let getFieldDeclarations = (json: JSON.t): array<(string, string, bool)> => {
   json
   ->getItemsOpt
   ->Option.map(arrJson =>
@@ -76,9 +77,10 @@ let getFieldDeclarations = (json: JSON.t): array<(string, string)> => {
                   let name = fieldDict->Dict.get(JsonKeys.name)->Option.flatMap(JSON.Decode.string)
                   let signature =
                     fieldDict->Dict.get(JsonKeys.signature)->Option.flatMap(JSON.Decode.string)
-
-                  switch (name, signature) {
-                  | (Some(n), Some(s)) => Some((n, s))
+                  let isOptional =
+                    fieldDict->Dict.get(JsonKeys.optional)->Option.flatMap(JSON.Decode.bool)
+                  switch (name, signature, isOptional) {
+                  | (Some(n), Some(s), Some(o)) => Some((n, s, o))
                   | _ => None
                   }
                 },
