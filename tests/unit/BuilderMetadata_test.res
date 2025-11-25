@@ -237,12 +237,14 @@ test("getFieldDeclarations", () => {
                           Dict.fromArray([
                             ("name", JSON.String("username")),
                             ("signature", JSON.String("string")),
+                            ("optional", JSON.Boolean(false)),
                           ]),
                         ),
                         JSON.Object(
                           Dict.fromArray([
                             ("name", JSON.String("age")),
                             ("signature", JSON.String("int")),
+                            ("optional", JSON.Boolean(false)),
                           ]),
                         ),
                       ]),
@@ -288,6 +290,7 @@ test("getFieldDeclarations", () => {
                           Dict.fromArray([
                             ("name", JSON.String("age")),
                             ("signature", JSON.String("int")),
+                            ("optional", JSON.Boolean(false)),
                           ]),
                         ),
                       ]),
