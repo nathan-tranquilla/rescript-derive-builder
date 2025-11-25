@@ -61,20 +61,48 @@ npx rescript-derive-builder
 ### 3. Use the generated builder
 
 ```rescript
-let user = UserBuilder.make()
+let user = UserBuilder.empty()
   ->UserBuilder.name("John Doe")
   ->UserBuilder.age(25)
   ->UserBuilder.email(Some("john@example.com"))
   ->UserBuilder.build()
+
+switch user {
+| Ok(validUser) => Js.Console.log("Created user successfully")
+| Error(message) => Js.Console.error(`Builder error: ${message}`)
+}
 ```
 
 ## Features
 
+- **Optional Field Support**: Supports ReScript's optional field syntax (`name?: string`)
+- **Comprehensive Error Messages**: Specific error messages for each missing required field
 - **Automatic Discovery**: Finds `rescript.json` with derive-builder config
 - **Glob Pattern Support**: Flexible file matching with glob patterns
-- **Builder Pattern Generation**: Creates fluent, type-safe builders
+- **Builder Pattern Generation**: Creates fluent, type-safe builders with validation
 - **Error Handling**: Comprehensive error messages for configuration issues
 - **Chain of Command**: Extensible code generation strategies
+
+## Optional Fields
+
+You can mark fields as optional using ReScript's optional syntax:
+
+```rescript
+/**
+ @@deriving(builder)
+ */
+type user = {
+  name: string,        // Required field
+  age: int,           // Required field  
+  email?: string,     // Optional field
+  phone?: string,     // Optional field
+}
+```
+
+Optional fields:
+- Don't need to be set in the builder
+- Won't generate "missing field" errors
+- Are automatically typed as `option<T>` in the final record
 
 ## Development
 
@@ -102,11 +130,18 @@ node bin/cli.js
 
 The library consists of several key modules:
 
-- **`ConfigDiscovery`**: Finds and parses derive-builder configuration
-- **`SourceDiscovery`**: Discovers and filters source files using glob patterns
-- **`CodegenStrategy`**: Chain of command pattern for code generation strategies
-- **`BuilderMetadata`**: Parses ReScript documentation JSON for type information (from `rescript-tools doc` output)
+- **`ConfigDiscovery`**: Finds and parses derive-builder configuration with detailed error messages
+- **`BuilderMetadata`**: Parses ReScript documentation JSON for type information (from `rescript-tools doc` output), extracts field declarations with optional field detection
+- **`CodegenStrategy`**: Chain of command pattern for code generation strategies, supports different type patterns (currently `.t` types)
 - **`Codegen`**: Main coordination module that executes `rescript-tools doc` and orchestrates the generation process
+
+### Generated Builder Structure
+
+For each type, the generator creates:
+- **Builder type**: Internal state tracking with `option<T>` for all fields  
+- **`empty()` function**: Creates initial builder state
+- **Setter functions**: One per field, with proper type signature based on whether field is optional
+- **`build()` function**: Validates required fields and constructs final object using comprehensive pattern matching
 
 ## Error Messages
 
