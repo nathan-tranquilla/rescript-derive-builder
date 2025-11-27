@@ -8,7 +8,11 @@ test("getStringArray", () => {
   ->getStringArray {
   | None => fail("getStringArray: failed to parse JSON string")
   | Some(arrStr) =>
-    eq("getStringArray correctly parsed JSON array to string array", arrStr, ["test", "test", "test"])
+    eq(
+      "getStringArray correctly parsed JSON array to string array",
+      arrStr,
+      ["test", "test", "test"],
+    )
   }
 })
 
@@ -46,11 +50,7 @@ test("hasBuilderDerivation", () => {
 
   // Test with empty array
   let empty = []
-  eq(
-    "hasBuilderDerivation returns false for empty array",
-    hasBuilderDerivation(empty),
-    false,
-  )
+  eq("hasBuilderDerivation returns false for empty array", hasBuilderDerivation(empty), false)
 })
 
 test("checkItemForBuilder", () => {
@@ -76,11 +76,7 @@ test("checkItemForBuilder", () => {
 test("getFileName", () => {
   // Test valid JSON with name field
   let validJson = JSON.Object(Dict.fromArray([("name", JSON.String("UserType"))]))
-  eq(
-    "getFileName extracts name from valid JSON object",
-    getFileName(validJson),
-    Ok("UserType"),
-  )
+  eq("getFileName extracts name from valid JSON object", getFileName(validJson), Ok("UserType"))
 
   // Test JSON without name field
   let noNameJson = JSON.Object(Dict.fromArray([("other", JSON.String("value"))]))
@@ -112,19 +108,11 @@ test("getItemsOpt", () => {
 
   // Test JSON without items field
   let noItemsJson = JSON.Object(Dict.fromArray([("name", JSON.String("SomeType"))]))
-  eq(
-    "getItemsOpt returns None when items field missing",
-    getItemsOpt(noItemsJson),
-    None,
-  )
+  eq("getItemsOpt returns None when items field missing", getItemsOpt(noItemsJson), None)
 
   // Test non-object JSON
   let nonObjectJson = JSON.String("not an object")
-  eq(
-    "getItemsOpt handles non-object JSON gracefully",
-    getItemsOpt(nonObjectJson),
-    None,
-  )
+  eq("getItemsOpt handles non-object JSON gracefully", getItemsOpt(nonObjectJson), None)
 
   // Test items field with non-array value
   let nonArrayItemsJson = JSON.Object(Dict.fromArray([("items", JSON.String("not an array"))]))
@@ -148,11 +136,7 @@ test("isADotTType", () => {
       ),
     ]),
   )
-  eq(
-    "isADotTType returns true when first item has name 't'",
-    isADotTType(dotTTypeJson),
-    true,
-  )
+  eq("isADotTType returns true when first item has name 't'", isADotTType(dotTTypeJson), true)
 
   // Test JSON with first item NOT having name "t"
   let nonDotTTypeJson = JSON.Object(
@@ -174,19 +158,11 @@ test("isADotTType", () => {
 
   // Test JSON with no items (relies on getItemsOpt)
   let noItemsJson = JSON.Object(Dict.fromArray([("name", JSON.String("SomeType"))]))
-  eq(
-    "isADotTType returns false when no items present",
-    isADotTType(noItemsJson),
-    false,
-  )
+  eq("isADotTType returns false when no items present", isADotTType(noItemsJson), false)
 
   // Test JSON with empty items array
   let emptyItemsJson = JSON.Object(Dict.fromArray([("items", JSON.Array([]))]))
-  eq(
-    "isADotTType returns false when items array is empty",
-    isADotTType(emptyItemsJson),
-    false,
-  )
+  eq("isADotTType returns false when items array is empty", isADotTType(emptyItemsJson), false)
 })
 
 test("getFieldDeclarations", () => {

@@ -16,11 +16,10 @@
     "suffix": ".res.mjs"
   },
   "suffix": ".res.mjs",
-  "bs-dependencies": [
-    "@rescript/core"
+  "dependencies": [
+    "rescript-nodejs"
   ],
-  "bsc-flags": [
-    "-open RescriptCore"
+  "compiler-flags": [
   ],
   "derive-builder": {
     "include": ["__fixtures__/*.res"],

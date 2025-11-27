@@ -3,14 +3,13 @@
   "version": "1.0.0",
   "description": "Automatic builder pattern generation for ReScript using @@deriving(builder)",
   "scripts": {
-    "clean": "rescript clean && node scripts/clean.js",
+    "clean": "rimraf **/__generated__ && rimraf **/lib && rescript clean ",
     "res:build": "rescript",
     "res:clean": "rescript clean",
     "res:dev": "rescript watch",
     "res:format": "rescript format src/*.{res,resi} tests/**/*.res",
     "res:test": "rescript && mocha lib/es6/tests/unit/**/*_test.res.mjs",
     "res:it": "npm run clean && rescript && mocha lib/es6/tests/it/**/*_it.res.mjs --timeout 30000",
-    "pretest": "npm run clean",
     "test": "npm run res:test && npm run res:it",
     "build": "rescript",
     "prepublishOnly": "npm run clean && npm run build && npm test"
@@ -42,7 +41,8 @@
   "dependencies": {
     "glob": "^12.0.0",
     "rescript": "^12.0.0",
-    "rescript-nodejs": "^16.1.0"
+    "rescript-nodejs": "^16.1.0",
+    "rimraf": "^6.1.2"
   },
   "devDependencies": {
     "mocha": "^11.7.5"
