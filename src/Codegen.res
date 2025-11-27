@@ -25,12 +25,15 @@ Stdlib.Console.log("rescript-derive-builder: Starting code generation...")
 
 switch ConfigDiscovery.getConfigContent(~process) {
 | Ok(cfgFile) => {
-    Stdlib.Console.log(`rescript-derive-builder: Found config with ${Array.length(cfgFile.paths)->Int.toString} source files`)
+    Stdlib.Console.log(
+      `rescript-derive-builder: Found config with ${Array.length(
+          cfgFile.paths,
+        )->Int.toString} source files`,
+    )
     Stdlib.Console.log(`rescript-derive-builder: Output directory: ${cfgFile.output}`)
-    
+
     let sourceFiles = cfgFile.paths
-    let processedFiles = sourceFiles
-    ->Array.filterMap(sourceFile => {
+    let processedFiles = sourceFiles->Array.filterMap(sourceFile => {
       Stdlib.Console.log(`rescript-derive-builder: Processing ${sourceFile}`)
       try {
         let output =
@@ -40,16 +43,23 @@ switch ConfigDiscovery.getConfigContent(~process) {
         filterBuilders(~filename=sourceFile, ~content=output)
       } catch {
       | JsExn(exn) => {
-          Stdlib.Console.error(`rescript-derive-builder: Failed to process ${sourceFile}: ${exn->JsExn.message->Option.getOr("Unknown error")}`)
+          Stdlib.Console.error(
+            `rescript-derive-builder: Failed to process ${sourceFile}: ${exn
+              ->JsExn.message
+              ->Option.getOr("Unknown error")}`,
+          )
           None
         }
       }
     })
-    
-    Stdlib.Console.log(`rescript-derive-builder: Found ${Array.length(processedFiles)->Int.toString} files with @@deriving(builder)`)
-    
-    processedFiles
-    ->Array.forEach(((filename, content)) => {
+
+    Stdlib.Console.log(
+      `rescript-derive-builder: Found ${Array.length(
+          processedFiles,
+        )->Int.toString} files with @@deriving(builder)`,
+    )
+
+    processedFiles->Array.forEach(((filename, content)) => {
       try {
         open CodegenStrategy
         let jsonDoc = JSON.parseOrThrow(content)
@@ -62,7 +72,10 @@ switch ConfigDiscovery.getConfigContent(~process) {
       | JsExn(exn) =>
         switch exn->JsExn.message {
         | Some(msg) => Stdlib.Console.error(`rescript-derive-builder: System error: ${msg}`)
-        | None => Stdlib.Console.error("rescript-derive-builder: Unable to produce code - unknown system error")
+        | None =>
+          Stdlib.Console.error(
+            "rescript-derive-builder: Unable to produce code - unknown system error",
+          )
         }
       }
     })

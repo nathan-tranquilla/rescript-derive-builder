@@ -7,7 +7,7 @@
     "res:build": "rescript",
     "res:clean": "rescript clean",
     "res:dev": "rescript watch",
-    "res:format": "rescript format src/*.{res,resi} tests/**/*.res",
+    "res:format": "rescript format src/**/*.res src/*.{res,resi} tests/**/*.res",
     "res:test": "rescript && mocha lib/es6/tests/unit/**/*_test.res.mjs",
     "res:it": "npm run clean && rescript && mocha lib/es6/tests/it/**/*_it.res.mjs --timeout 30000",
     "test": "npm run res:test && npm run res:it",

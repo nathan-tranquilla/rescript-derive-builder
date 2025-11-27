@@ -25,7 +25,8 @@ test("Test that generated source code compiles", () => {
 
     // Check that the compiled JavaScript file exists
     let compiledFileExists = switch Fs.readdirSync("../lib/es6/tests/__generated__") {
-    | files => files->Array.some(file =>
+    | files =>
+      files->Array.some(file =>
         file->String.includes("TestTypeBuilder") && file->String.endsWith(".mjs")
       )
     | exception _ => false
