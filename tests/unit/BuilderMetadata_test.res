@@ -1,21 +1,14 @@
-open Test
+open Mocha
+open Test_utils
 open BuilderMetadata
-
-let intEqual = (~message=?, a: int, b: int) =>
-  assertion(~message?, ~operator="intEqual", (a, b) => a === b, a, b)
 
 test("getStringArray", () => {
   switch `["test","test","test"]`
   ->JSON.parseExn
   ->getStringArray {
-  | None => fail(~message="getStringArray: failed to parse JSON string", ())
+  | None => fail("getStringArray: failed to parse JSON string")
   | Some(arrStr) =>
-    assertion(
-      ~message="getStringArray correctly parsed JSON array to string array",
-      (actual, expected) => actual == expected,
-      arrStr,
-      ["test", "test", "test"],
-    )
+    eq("getStringArray correctly parsed JSON array to string array", arrStr, ["test", "test", "test"])
   }
 })
 
@@ -23,18 +16,13 @@ test("getObjectArray", () => {
   switch `[{"name": "test1"}, {"name": "test2"}]`
   ->JSON.parseExn
   ->getObjectArray {
-  | None => fail(~message="getObjectArray: failed to parse JSON array", ())
+  | None => fail("getObjectArray: failed to parse JSON array")
   | Some(arrObj) => {
       let expected = [
         Dict.fromArray([("name", JSON.String("test1"))]),
         Dict.fromArray([("name", JSON.String("test2"))]),
       ]
-      assertion(
-        ~message="getObjectArray correctly parsed JSON array to dict array",
-        (actual, expected) => actual == expected,
-        arrObj,
-        expected,
-      )
+      eq("getObjectArray correctly parsed JSON array to dict array", arrObj, expected)
     }
   }
 })
@@ -42,27 +30,24 @@ test("getObjectArray", () => {
 test("hasBuilderDerivation", () => {
   // Test with array containing builder derivation
   let withBuilder = ["Some other text", "@@deriving(builder) other test", "More text"]
-  assertion(
-    ~message="hasBuilderDerivation detects @@deriving(builder) in array",
-    (actual, expected) => actual == expected,
+  eq(
+    "hasBuilderDerivation detects @@deriving(builder) in array",
     hasBuilderDerivation(withBuilder),
     true,
   )
 
   // Test with array not containing builder derivation
   let withoutBuilder = ["Some text", "@@deriving(show)", "Other derivations"]
-  assertion(
-    ~message="hasBuilderDerivation returns false when no @@deriving(builder) present",
-    (actual, expected) => actual == expected,
+  eq(
+    "hasBuilderDerivation returns false when no @@deriving(builder) present",
     hasBuilderDerivation(withoutBuilder),
     false,
   )
 
   // Test with empty array
   let empty = []
-  assertion(
-    ~message="hasBuilderDerivation returns false for empty array",
-    (actual, expected) => actual == expected,
+  eq(
+    "hasBuilderDerivation returns false for empty array",
     hasBuilderDerivation(empty),
     false,
   )
@@ -73,18 +58,16 @@ test("checkItemForBuilder", () => {
   let itemWithBuilder = Dict.fromArray([
     ("docstrings", JSON.Array([JSON.String("@@deriving(builder)")])),
   ])
-  assertion(
-    ~message="checkItemForBuilder integrates docstring extraction and builder detection",
-    (actual, expected) => actual == expected,
+  eq(
+    "checkItemForBuilder integrates docstring extraction and builder detection",
     checkItemForBuilder(itemWithBuilder),
     true,
   )
 
   // Test item without docstrings field
   let itemNoDocstrings = Dict.fromArray([("name", JSON.String("SomeType"))])
-  assertion(
-    ~message="checkItemForBuilder handles missing docstrings field",
-    (actual, expected) => actual == expected,
+  eq(
+    "checkItemForBuilder handles missing docstrings field",
     checkItemForBuilder(itemNoDocstrings),
     false,
   )
@@ -93,27 +76,24 @@ test("checkItemForBuilder", () => {
 test("getFileName", () => {
   // Test valid JSON with name field
   let validJson = JSON.Object(Dict.fromArray([("name", JSON.String("UserType"))]))
-  assertion(
-    ~message="getFileName extracts name from valid JSON object",
-    (actual, expected) => actual == expected,
+  eq(
+    "getFileName extracts name from valid JSON object",
     getFileName(validJson),
     Ok("UserType"),
   )
 
   // Test JSON without name field
   let noNameJson = JSON.Object(Dict.fromArray([("other", JSON.String("value"))]))
-  assertion(
-    ~message="getFileName returns error when name field missing",
-    (actual, expected) => actual == expected,
+  eq(
+    "getFileName returns error when name field missing",
     getFileName(noNameJson),
     Error("No 'name' found"),
   )
 
   // Test non-object JSON
   let nonObjectJson = JSON.String("not an object")
-  assertion(
-    ~message="getFileName handles non-object JSON gracefully",
-    (actual, expected) => actual == expected,
+  eq(
+    "getFileName handles non-object JSON gracefully",
     getFileName(nonObjectJson),
     Error("No 'name' found"),
   )
@@ -124,36 +104,32 @@ test("getItemsOpt", () => {
   let validJson = JSON.Object(
     Dict.fromArray([("items", JSON.Array([JSON.String("item1"), JSON.String("item2")]))]),
   )
-  assertion(
-    ~message="getItemsOpt extracts items array from valid JSON object",
-    (actual, expected) => actual == expected,
+  eq(
+    "getItemsOpt extracts items array from valid JSON object",
     getItemsOpt(validJson),
     Some([JSON.String("item1"), JSON.String("item2")]),
   )
 
   // Test JSON without items field
   let noItemsJson = JSON.Object(Dict.fromArray([("name", JSON.String("SomeType"))]))
-  assertion(
-    ~message="getItemsOpt returns None when items field missing",
-    (actual, expected) => actual == expected,
+  eq(
+    "getItemsOpt returns None when items field missing",
     getItemsOpt(noItemsJson),
     None,
   )
 
   // Test non-object JSON
   let nonObjectJson = JSON.String("not an object")
-  assertion(
-    ~message="getItemsOpt handles non-object JSON gracefully",
-    (actual, expected) => actual == expected,
+  eq(
+    "getItemsOpt handles non-object JSON gracefully",
     getItemsOpt(nonObjectJson),
     None,
   )
 
   // Test items field with non-array value
   let nonArrayItemsJson = JSON.Object(Dict.fromArray([("items", JSON.String("not an array"))]))
-  assertion(
-    ~message="getItemsOpt returns None when items field is not an array",
-    (actual, expected) => actual == expected,
+  eq(
+    "getItemsOpt returns None when items field is not an array",
     getItemsOpt(nonArrayItemsJson),
     None,
   )
@@ -172,9 +148,8 @@ test("isADotTType", () => {
       ),
     ]),
   )
-  assertion(
-    ~message="isADotTType returns true when first item has name 't'",
-    (actual, expected) => actual == expected,
+  eq(
+    "isADotTType returns true when first item has name 't'",
     isADotTType(dotTTypeJson),
     true,
   )
@@ -191,27 +166,24 @@ test("isADotTType", () => {
       ),
     ]),
   )
-  assertion(
-    ~message="isADotTType returns false when first item name is not 't'",
-    (actual, expected) => actual == expected,
+  eq(
+    "isADotTType returns false when first item name is not 't'",
     isADotTType(nonDotTTypeJson),
     false,
   )
 
   // Test JSON with no items (relies on getItemsOpt)
   let noItemsJson = JSON.Object(Dict.fromArray([("name", JSON.String("SomeType"))]))
-  assertion(
-    ~message="isADotTType returns false when no items present",
-    (actual, expected) => actual == expected,
+  eq(
+    "isADotTType returns false when no items present",
     isADotTType(noItemsJson),
     false,
   )
 
   // Test JSON with empty items array
   let emptyItemsJson = JSON.Object(Dict.fromArray([("items", JSON.Array([]))]))
-  assertion(
-    ~message="isADotTType returns false when items array is empty",
-    (actual, expected) => actual == expected,
+  eq(
+    "isADotTType returns false when items array is empty",
     isADotTType(emptyItemsJson),
     false,
   )
@@ -258,9 +230,8 @@ test("getFieldDeclarations", () => {
       ),
     ]),
   )
-  assertion(
-    ~message="getFieldDeclarations extracts name-signature pairs from valid structure",
-    (actual, expected) => actual == expected,
+  eq(
+    "getFieldDeclarations extracts name-signature pairs from valid structure",
     getFieldDeclarations(validFieldsJson),
     [("username", "string", false), ("age", "int", false)],
   )
@@ -304,27 +275,24 @@ test("getFieldDeclarations", () => {
       ),
     ]),
   )
-  assertion(
-    ~message="getFieldDeclarations skips incomplete fields and returns valid ones",
-    (actual, expected) => actual == expected,
+  eq(
+    "getFieldDeclarations skips incomplete fields and returns valid ones",
     getFieldDeclarations(incompleteFieldJson),
     [("age", "int", false)],
   )
 
   // Test JSON with no items (leverages getItemsOpt)
   let noItemsJson = JSON.Object(Dict.fromArray([("name", JSON.String("SomeType"))]))
-  assertion(
-    ~message="getFieldDeclarations returns empty array when no items",
-    (actual, expected) => actual == expected,
+  eq(
+    "getFieldDeclarations returns empty array when no items",
     getFieldDeclarations(noItemsJson),
     [],
   )
 
   // Test JSON with empty structure
   let emptyStructureJson = JSON.Object(Dict.fromArray([("items", JSON.Array([]))]))
-  assertion(
-    ~message="getFieldDeclarations returns empty array for empty items",
-    (actual, expected) => actual == expected,
+  eq(
+    "getFieldDeclarations returns empty array for empty items",
     getFieldDeclarations(emptyStructureJson),
     [],
   )

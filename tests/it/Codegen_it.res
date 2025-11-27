@@ -1,4 +1,5 @@
-open Test
+open Mocha
+open Test_utils
 open NodeJs
 
 test("Test that generated source code compiles", () => {
@@ -18,29 +19,7 @@ test("Test that generated source code compiles", () => {
     
     // Run code generation from tests directory - this creates the builder files
     let _ = ChildProcess.execSync("node ../bin/cli.js")
-    
-    // Update rescript.json to include __generated__ directory
-    let configContent = Fs.readFileSync("rescript.json")->Buffer.toString
-    let updatedConfig = configContent->String.replace(
-      `"sources": [ 
-    {
-      "dir": "__fixtures__",
-      "subdirs": false
-    }
-  ],`,
-      `"sources": [ 
-    {
-      "dir": "__fixtures__",
-      "subdirs": false
-    },
-    {
-      "dir": "__generated__",
-      "subdirs": false
-    }
-  ],`
-    )
-    Fs.writeFileSync("rescript.json", Buffer.fromString(updatedConfig))
-    
+        
     // Now rebuild to ensure generated code compiles
     let _ = ChildProcess.execSync("npx rescript")
     
@@ -52,8 +31,7 @@ test("Test that generated source code compiles", () => {
   | Exn.Error(err) => {
       // Always restore original directory on error
       Process.chdir(process,originalCwd)
-      Js.Console.error(`Integration test failed: ${Exn.message(err)->Option.getOr("Unknown")}`)
-      fail()
+      fail(`Integration test failed: ${Exn.message(err)->Option.getOr("Unknown")}`)
     }
   }
 })

@@ -21,9 +21,6 @@
     "@rescript/core",
     "rescript-nodejs"
   ],
-  "bs-dev-dependencies": [
-    "rescript-test"
-  ],
   "bsc-flags": [
     "-open RescriptCore"
   ]
