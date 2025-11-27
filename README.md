@@ -8,7 +8,26 @@ This library searches for a `rescript.json` file containing "derive-builder" con
 
 The library uses the `rescript-tools doc` command internally to extract type information and docstrings from your ReScript source files, then processes this data to generate builder patterns.
 
+## Quick Start
+
+1. **Install**: `npm install rescript-derive-builder` (requires ReScript >= 12.0.0)
+2. **Configure**: Add to your `rescript.json`:
+   ```json
+   {
+     "derive-builder": {
+       "include": ["src/**/*.res"],
+       "output": "src/generated"
+     }
+   }
+   ```
+3. **Annotate**: Add `@@deriving(builder)` to your type's docstring
+4. **Generate**: Run `npx rescript-derive-builder`
+5. **Use**: Import and use your generated builder!
+
 ## Installation
+
+**Requirements:**
+- ReScript >= 12.0.0
 
 ```sh
 npm install rescript-derive-builder
@@ -40,10 +59,10 @@ Add the `@@deriving(builder)` annotation in a docstring comment above your type:
 
 ```rescript
 /**
- @@deriving(builder)
- 
- User type with builder pattern support.
- Other documentation can be present too.
+ * @@deriving(builder)
+ * 
+ * User type with builder pattern support.
+ * Other documentation can be present too.
  */
 type user = {
   name: string,
@@ -83,13 +102,68 @@ switch user {
 - **Error Handling**: Comprehensive error messages for configuration issues
 - **Chain of Command**: Extensible code generation strategies
 
+## Current Limitations & Extensibility
+
+### Supported Type Patterns
+
+Currently, this library only supports the **main type pattern** - types named `t` that are the primary type in a ReScript module:
+
+```rescript
+// ✅ Supported: Main module type named 't'
+/**
+ * @@deriving(builder)
+ */
+type t = {
+  name: string,
+  age: int,
+}
+```
+
+```rescript
+// ❌ Not yet supported: Named types other than 't'
+/**
+ * @@deriving(builder) 
+ */
+type user = {
+  name: string,
+  age: int,
+}
+
+// ❌ Not yet supported: Variant types
+/**
+ * @@deriving(builder)
+ */
+type shape = Circle(float) | Rectangle(float, float)
+```
+
+### Extensibility by Design
+
+The library is architected with a **strategy pattern** that makes adding support for new type patterns straightforward:
+
+- **`HandlerInterface`**: Defines the contract for new type handlers
+- **Chain of Command**: Handlers are linked together, trying each in sequence
+- **Modular Handlers**: Each type pattern has its own dedicated handler module
+
+**Adding new type support** requires:
+1. Creating a new handler module implementing `HandlerInterface`
+2. Adding it to the handler chain in `CodegenStrategyCoordinator`
+
+This design ensures the library can easily grow to support:
+- Named record types (`type user = {...}`)
+- Variant types with constructors
+- Tuple types
+- Nested type definitions
+- Custom type patterns
+
+The current limitation is intentional - we're starting with the most common ReScript pattern (`.t` types) and will expand based on community needs.
+
 ## Optional Fields
 
 You can mark fields as optional using ReScript's optional syntax:
 
 ```rescript
 /**
- @@deriving(builder)
+ * @@deriving(builder)
  */
 type user = {
   name: string,        // Required field
