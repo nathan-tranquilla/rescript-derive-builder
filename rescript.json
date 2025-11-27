@@ -1,5 +1,5 @@
 {
-  "name": "app",
+  "name": "rescript-derive-builder",
   "sources": [
     {
       "dir": "src",
@@ -17,11 +17,8 @@
     "suffix": ".res.mjs"
   },
   "suffix": ".res.mjs",
-  "bs-dependencies": [
-    "@rescript/core",
+  "dependencies": [
     "rescript-nodejs"
   ],
-  "bsc-flags": [
-    "-open RescriptCore"
-  ]
+  "compiler-flags": []
 }

@@ -14,7 +14,7 @@ let getStringArray = (json: JSON.t): option<array<string>> =>
   ->JSON.Decode.array
   ->Option.map(arr => arr->Array.filterMap(JSON.Decode.string))
 
-let getObjectArray = (json: JSON.t): option<array<Js.Dict.t<JSON.t>>> =>
+let getObjectArray = (json: JSON.t): option<array<dict<JSON.t>>> =>
   json
   ->JSON.Decode.array
   ->Option.map(arr => arr->Array.filterMap(JSON.Decode.object))
@@ -22,7 +22,7 @@ let getObjectArray = (json: JSON.t): option<array<Js.Dict.t<JSON.t>>> =>
 let hasBuilderDerivation = (docstrings: array<string>): bool =>
   docstrings->Array.some(docstring => docstring->String.includes(builderAttribute))
 
-let checkItemForBuilder = (item: Js.Dict.t<JSON.t>): bool =>
+let checkItemForBuilder = (item: dict<JSON.t>): bool =>
   item
   ->Dict.get(JsonKeys.docstrings)
   ->Option.flatMap(getStringArray)

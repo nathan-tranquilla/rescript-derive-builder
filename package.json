@@ -6,7 +6,7 @@
     "clean": "rescript clean && node scripts/clean.js",
     "res:build": "rescript",
     "res:clean": "rescript clean",
-    "res:dev": "rescript -w",
+    "res:dev": "rescript watch",
     "res:format": "rescript format src/*.{res,resi} tests/**/*.res",
     "res:test": "rescript && mocha lib/es6/tests/unit/**/*_test.res.mjs",
     "res:it": "npm run clean && rescript && mocha lib/es6/tests/it/**/*_it.res.mjs --timeout 30000",
@@ -40,10 +40,8 @@
   },
   "homepage": "https://github.com/nathan-tranquilla/rescript-derive-builder#readme",
   "dependencies": {
-    "@rescript/core": "^1.6.1",
-    "@rescript/tools": "^0.6.6",
     "glob": "^12.0.0",
-    "rescript": "^11.1.4",
+    "rescript": "^12.0.0",
     "rescript-nodejs": "^16.1.0"
   },
   "devDependencies": {

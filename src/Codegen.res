@@ -3,7 +3,7 @@ open NodeJs
 let filterBuilders = (~filename: string, ~content: string): option<(string, string)> => {
   try {
     content
-    ->JSON.parseExn
+    ->JSON.parseOrThrow
     ->JSON.Decode.object
     ->Option.flatMap(dict =>
       dict
@@ -34,26 +34,16 @@ switch ConfigDiscovery.getConfigContent(~process) {
     ->Array.forEach(((filename, content)) => {
       try {
         open CodegenStrategy
-        let jsonDoc = JSON.parseExn(content)
-        let code = CodegenStrategyCoordinator.exec(jsonDoc)->Result.getExn
+        let jsonDoc = JSON.parseOrThrow(content)
+        let code = CodegenStrategyCoordinator.exec(jsonDoc)->Result.getOrThrow
         let outputFilename = Path.join2(cfgFile.output, Path.parse(filename).name ++ "Builder.res")
         Fs.mkdirSyncWith(cfgFile.output, {recursive: true})
         Fs.writeFileSync(outputFilename, code->Buffer.fromString)
       } catch {
-      | Js.Exn.Error(obj) =>
-        switch Js.Exn.message(obj) {
-        | Some(msg) if String.includes(msg, "JSON") => Js.Console.log(`JSON parsing error: ${msg}`)
-        | Some(msg) if String.includes(msg, "ENOENT") => Js.Console.log(`File not found: ${msg}`)
-        | Some(msg) if String.includes(msg, "EACCES") => Js.Console.log(`Permission denied: ${msg}`)
-        | Some(msg) if String.includes(msg, "EEXIST") =>
-          Js.Console.log(`File already exists: ${msg}`)
-        | Some(msg) => Js.Console.log(`Error: ${msg}`)
-        | None => Js.Console.log("Unknown error occurred during code generation")
-        }
-      | Exn.Error(obj) =>
-        switch Exn.message(obj) {
-        | Some(msg) => Js.Console.log(`System error: ${msg}`)
-        | None => Js.Console.log("Unable to produce code - unknown system error")
+      | JsExn(exn) =>
+        switch exn->JsExn.message {
+        | Some(msg) => Stdlib.Console.log(`System error: ${msg}`)
+        | None => Stdlib.Console.log("Unable to produce code - unknown system error")
         }
       }
     })
@@ -61,7 +51,7 @@ switch ConfigDiscovery.getConfigContent(~process) {
     NodeJs.Process.exit(process, ())
   }
 | Error(msg) => {
-    Js.Console.log(msg)
+    Stdlib.Console.log(msg)
     NodeJs.Process.exitWithCode(process, 1)
   }
 }

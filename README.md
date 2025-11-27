@@ -68,7 +68,7 @@ let user = UserBuilder.empty()
   ->UserBuilder.build()
 
 switch user {
-| Ok(validUser) => Js.Console.log("Created user successfully")
+| Ok(validUser) => Stdlib.Console.log("Created user successfully")
 | Error(message) => Js.Console.error(`Builder error: ${message}`)
 }
 ```

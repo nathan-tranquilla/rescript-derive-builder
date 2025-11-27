@@ -6,3 +6,7 @@
 .merlin
 src/**/*.mjs
 /**/__generated__/**
+
+/lib/
+.bsb.lock
+**/*.res.mjs

@@ -23,15 +23,15 @@ test("Test that generated source code compiles", () => {
     // Now rebuild to ensure generated code compiles
     let _ = ChildProcess.execSync("npx rescript")
     
-    Js.Console.log("Integration test passed - generated code compiles successfully")
+    Stdlib.Console.log("Integration test passed - generated code compiles successfully")
     
     // Always restore original directory
     Process.chdir(process, originalCwd)
   } catch {
-  | Exn.Error(err) => {
+  | JsExn(exn) => {
       // Always restore original directory on error
       Process.chdir(process,originalCwd)
-      fail(`Integration test failed: ${Exn.message(err)->Option.getOr("Unknown")}`)
+      fail(`Integration test failed: ${exn->JsExn.message->Option.getOr("Unknown")}`)
     }
   }
 })

@@ -4,7 +4,7 @@ open BuilderMetadata
 
 test("getStringArray", () => {
   switch `["test","test","test"]`
-  ->JSON.parseExn
+  ->JSON.parseOrThrow
   ->getStringArray {
   | None => fail("getStringArray: failed to parse JSON string")
   | Some(arrStr) =>
@@ -14,7 +14,7 @@ test("getStringArray", () => {
 
 test("getObjectArray", () => {
   switch `[{"name": "test1"}, {"name": "test2"}]`
-  ->JSON.parseExn
+  ->JSON.parseOrThrow
   ->getObjectArray {
   | None => fail("getObjectArray: failed to parse JSON array")
   | Some(arrObj) => {

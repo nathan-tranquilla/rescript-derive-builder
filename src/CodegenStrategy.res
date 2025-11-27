@@ -29,7 +29,7 @@ module DotTHandler = {
     switch nameRes {
     | Ok(name) =>
       ` 
-        module ${name->String.charAt(0)->String.toUpperCase}${name->String.sliceToEnd(
+        module ${name->String.charAt(0)->String.toUpperCase}${name->String.slice(
           ~start=1,
         )}Builder = {
           type t = {
